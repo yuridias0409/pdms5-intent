@@ -2,6 +2,7 @@ package pdms5.at2.intent;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -12,6 +13,8 @@ public class OutraActivity extends AppCompatActivity {
     // instância da classe de View Binding
     private ActivityOutraBinding  activityOutraBinding;
 
+    public static final String RETORNO = "RETORNO";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -19,9 +22,17 @@ public class OutraActivity extends AppCompatActivity {
         setContentView(activityOutraBinding.getRoot());
 
         // Recebendo parâmetros pela Forma #1
+        /*
         Bundle parametroBundle = getIntent().getExtras();
         if(parametroBundle != null){
             String parametro = parametroBundle.getString(MainActivity.PARAMETRO, "");
+            activityOutraBinding.recebidoTv.setText(parametro);
+        }
+        */
+
+        // Recebendo parâmetros pela Forma #2
+        String parametro = getIntent().getStringExtra(MainActivity.PARAMETRO);
+        if(parametro != null){
             activityOutraBinding.recebidoTv.setText(parametro);
         }
 
@@ -59,6 +70,11 @@ public class OutraActivity extends AppCompatActivity {
     }
 
     public void onClick(View view){
+        //Retornando para a Main Activity
+        Intent retornoIntent = new Intent();
+        retornoIntent.putExtra(RETORNO, activityOutraBinding.retornoEt.getText().toString());
+        setResult(RESULT_OK, retornoIntent);
+
         finish(); // Chama na sequência onPause, onStop, onDestroy
     }
 }
