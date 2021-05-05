@@ -10,9 +10,11 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import pdms5.at2.intent.databinding.ActivityMainBinding;
 
@@ -25,6 +27,12 @@ public class MainActivity extends AppCompatActivity {
 
     // request code para OutraActivity
     private final int OUTRA_ACTIVITY_REQUEST_CODE = 0;
+
+    // request code para permissão CALL_PHONE
+    private final int CALL_PHONE_PERMISSION_REQUEST_CODE = 1;
+
+    // request code para pegar um arquivo de imagem
+    private final int PICK_IMAGE_FILE_REQUEST_CODE = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,11 +108,21 @@ public class MainActivity extends AppCompatActivity {
                 Intent abrirNavegadorIntent = new Intent(Intent.ACTION_VIEW);
                 abrirNavegadorIntent.setData(Uri.parse(activityMainBinding.parametroEt.getText().toString()));
                 startActivity(abrirNavegadorIntent);
-
                 return true;
             case R.id.callMi:
                 // Fazendo uma ligação
                 verifyCallPhonePermission();
+                return true;
+            case R.id.dialMi:
+                Intent discarIntent = new Intent(Intent.ACTION_DIAL);
+                discarIntent.setData(Uri.parse("tel: " + activityMainBinding.parametroEt.getText().toString()));
+                startActivity(discarIntent);
+                return true;
+            case R.id.pickMi:
+                Intent pegarImagemIntent = new Intent(Intent.ACTION_PICK);
+                String diretorioImagens = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getPath();
+                pegarImagemIntent.setDataAndType(Uri.parse(diretorioImagens), "image/*");
+                startActivityForResult(pegarImagemIntent, PICK_IMAGE_FILE_REQUEST_CODE);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -120,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(ligarIntent);
             }   else{
                 //Solicitar permissão para o usuário em tempo de execução
-
+                requestPermissions(new String[]{Manifest.permission.CALL_PHONE}, CALL_PHONE_PERMISSION_REQUEST_CODE);
             }
         }   else{
             // A permissão foi solicitada no Manifest
@@ -130,12 +148,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if(requestCode == CALL_PHONE_PERMISSION_REQUEST_CODE){
+            if(permissions[0].equals(Manifest.permission.CALL_PHONE) && grantResults[0] != PackageManager.PERMISSION_GRANTED){
+                //Usuário não deu permissão
+                Toast.makeText(this, "Permissão de ligação é necessária para essa funcionalidade", Toast.LENGTH_SHORT).show();
+            }
+            verifyCallPhonePermission();
+        }
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if(requestCode == OUTRA_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK){
             String retorno = data.getStringExtra(OutraActivity.RETORNO);
             if(retorno != null){
                 activityMainBinding.retornoTv.setText(retorno);
             }
+        }   else if(requestCode == PICK_IMAGE_FILE_REQUEST_CODE && resultCode == RESULT_OK){
+            Uri imagemUri = data.getData();
+
+            // Vizualizando imagem
+            Intent vizualizarImagem = new Intent(Intent.ACTION_VIEW, imagemUri);
+            startActivity(vizualizarImagem);
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
