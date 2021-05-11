@@ -119,13 +119,25 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(discarIntent);
                 return true;
             case R.id.pickMi:
-                Intent pegarImagemIntent = new Intent(Intent.ACTION_PICK);
-                String diretorioImagens = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getPath();
-                pegarImagemIntent.setDataAndType(Uri.parse(diretorioImagens), "image/*");
-                startActivityForResult(pegarImagemIntent, PICK_IMAGE_FILE_REQUEST_CODE);
+                startActivityForResult(getPickageImageIntent(), PICK_IMAGE_FILE_REQUEST_CODE);
+                return true;
+            case R.id.chooserMi:
+                // Força o usuário escolha entre uma lista de aplicativos MESMO QUE JÁ EXISTA UM APP PADRÃO
+                Intent escolherActivityIntent = new Intent(Intent.ACTION_CHOOSER);
+                escolherActivityIntent.putExtra(Intent.EXTRA_INTENT, getPickageImageIntent());
+                escolherActivityIntent.putExtra(Intent.EXTRA_TITLE, "Escolha um app para selecionar imagem");
+                startActivityForResult(escolherActivityIntent, PICK_IMAGE_FILE_REQUEST_CODE);
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private Intent getPickageImageIntent(){
+        Intent pegarImagemIntent = new Intent(Intent.ACTION_PICK);
+        String diretorioImagens = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getPath();
+        pegarImagemIntent.setDataAndType(Uri.parse(diretorioImagens), "image/*");
+
+        return pegarImagemIntent;
     }
 
     private void verifyCallPhonePermission() {
